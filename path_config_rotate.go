@@ -1,4 +1,4 @@
-package b2
+package vault_plugin_secrets_backblazeb2
 
 import (
 	"context"
