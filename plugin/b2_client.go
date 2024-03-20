@@ -1,10 +1,10 @@
 package b2
 
 import (
-    "context"
-	
-	b2client "github.com/kurin/blazer/b2"
-	"github.com/hashicorp/vault/logical"
+	"context"
+
+	b2client "github.com/Backblaze/blazer/b2"
+	"github.com/hashicorp/vault/sdk/logical"
 )
 
 // Call this to set a new b2client in the backend.
@@ -50,13 +50,13 @@ func (b *backend) getB2Client(ctx context.Context, s logical.Storage) (*b2client
 	}
 
 	if c.KeyId == "" {
-	    b.Logger().Error("KeyID not set when trying to create new client")
-	    return nil, err
+		b.Logger().Error("KeyID not set when trying to create new client")
+		return nil, err
 	}
 
 	if c.Key == "" {
-	    b.Logger().Error("Key not set when trying to create new client")
-	    return nil, err
+		b.Logger().Error("Key not set when trying to create new client")
+		return nil, err
 	}
 
 	if err := b.newB2Client(ctx, c.KeyId, c.Key); err != nil {
