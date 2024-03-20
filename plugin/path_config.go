@@ -17,19 +17,19 @@ func (b *backend) pathConfigCRUD() *framework.Path {
 		HelpDescription: "Use this endpoint to set the Backblaze B2 account id, key id and key.",
 
 		Fields: map[string]*framework.FieldSchema{
-			"account_id": &framework.FieldSchema{
+			"account_id": {
 				Type:        framework.TypeString,
 				Description: "The Backblaze B2 Account Id.",
 			},
-			"key_id": &framework.FieldSchema{
+			"key_id": {
 				Type:        framework.TypeString,
 				Description: "The Backblaze B2 Key Id.",
 			},
-			"key": &framework.FieldSchema{
+			"key": {
 				Type:        framework.TypeString,
 				Description: "The Backblaze B2 Key.",
 			},
-			"key_name": &framework.FieldSchema{
+			"key_name": {
 				Type:        framework.TypeString,
 				Description: "(Optional) Key name.",
 			},

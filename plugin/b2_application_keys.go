@@ -16,27 +16,27 @@ func (b *backend) b2ApplicationsKeys() *framework.Secret {
 	return &framework.Secret{
 		Type: b2KeyType,
 		Fields: map[string]*framework.FieldSchema{
-			"keyName": &framework.FieldSchema{
+			"keyName": {
 				Type:        framework.TypeString,
 				Description: "Application key name",
 			},
-			"applicationKeyId": &framework.FieldSchema{
+			"applicationKeyId": {
 				Type:        framework.TypeString,
 				Description: "Application Key ID",
 			},
-			"capabilities": &framework.FieldSchema{
+			"capabilities": {
 				Type:        framework.TypeCommaStringSlice,
 				Description: "List of key capabilities",
 			},
-			"accountId": &framework.FieldSchema{
+			"accountId": {
 				Type:        framework.TypeString,
 				Description: "Account ID the key is associated with",
 			},
-			"bucketName": &framework.FieldSchema{
+			"bucketName": {
 				Type:        framework.TypeString,
 				Description: "(Optional) Bucket name to which the key is restricted",
 			},
-			"namePrefix": &framework.FieldSchema{
+			"namePrefix": {
 				Type:        framework.TypeString,
 				Description: "(Optional) Object name prefix to which the key is restricted",
 			},

@@ -17,11 +17,11 @@ func (b *backend) pathKeysRead() *framework.Path {
 		HelpSynopsis: "Provision a key for this role.",
 
 		Fields: map[string]*framework.FieldSchema{
-			"role": &framework.FieldSchema{
+			"role": {
 				Type:        framework.TypeString,
 				Description: "Name of role",
 			},
-			"ttl": &framework.FieldSchema{
+			"ttl": {
 				Type:        framework.TypeDurationSecond,
 				Description: "Lifetime of applicationKey in seconds",
 			},

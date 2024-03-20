@@ -19,7 +19,7 @@ func (b *backend) pathConfigRotate() *framework.Path {
 		HelpDescription: "Use this endpoint to use the current key to generate a new key, and use that",
 
 		Fields: map[string]*framework.FieldSchema{
-			"key_name": &framework.FieldSchema{
+			"key_name": {
 				Type:        framework.TypeString,
 				Description: "The name for the newly generated key.",
 			},
@@ -71,9 +71,9 @@ func (b *backend) pathRotateKey(ctx context.Context, req *logical.Request, d *fr
 	// Gin up a FieldData to pass to Update
 	nd := &framework.FieldData{
 		Schema: map[string]*framework.FieldSchema{
-			"key_id":   &framework.FieldSchema{Type: framework.TypeString},
-			"key":      &framework.FieldSchema{Type: framework.TypeString},
-			"key_name": &framework.FieldSchema{Type: framework.TypeString},
+			"key_id":   {Type: framework.TypeString},
+			"key":      {Type: framework.TypeString},
+			"key_name": {Type: framework.TypeString},
 		},
 		Raw: map[string]interface{}{
 			"key_id":   newKey.ID(),
