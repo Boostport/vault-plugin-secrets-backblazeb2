@@ -26,8 +26,10 @@ func (b *backend) pathKeysRead() *framework.Path {
 			},
 		},
 
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.ReadOperation: b.pathKeyRead,
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.ReadOperation: &framework.PathOperation{
+				Callback: b.pathKeyRead,
+			},
 		},
 	}
 }
