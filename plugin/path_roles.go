@@ -2,11 +2,11 @@ package b2
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
@@ -100,7 +100,7 @@ func (b *backend) pathRoleRead(ctx context.Context, req *logical.Request, d *fra
 	r, err := b.GetRole(ctx, req.Storage, role)
 
 	if err != nil {
-		if err == ErrRoleNotFound {
+		if errors.Is(err, ErrRoleNotFound) {
 			return logical.ErrorResponse(err.Error()), logical.ErrInvalidRequest
 		}
 		return nil, err
@@ -167,11 +167,11 @@ func (b *backend) pathRoleWrite(ctx context.Context, req *logical.Request, d *fr
 
 	entry, err := logical.StorageEntryJSON("roles/"+role, &r)
 	if err != nil {
-		return nil, errwrap.Wrapf("failed to create storage entry: {{err}}", err)
+		return nil, fmt.Errorf("failed to create storage entry: %w", err)
 	}
 
 	if err := req.Storage.Put(ctx, entry); err != nil {
-		return nil, errwrap.Wrapf("failed to write entry to storage: {{err}}", err)
+		return nil, fmt.Errorf("failed to write entry to storage: %w", err)
 	}
 
 	return nil, nil
@@ -183,14 +183,14 @@ func (b *backend) pathRoleDelete(ctx context.Context, req *logical.Request, d *f
 
 	_, err := b.GetRole(ctx, req.Storage, role)
 	if err != nil {
-		if err == ErrRoleNotFound {
+		if errors.Is(err, ErrRoleNotFound) {
 			return logical.ErrorResponse(err.Error()), logical.ErrInvalidRequest
 		}
 		return nil, err
 	}
 
 	if err := req.Storage.Delete(ctx, "roles/"+role); err != nil {
-		return nil, errwrap.Wrapf("Failed to delete role from storage: {{err}}", err)
+		return nil, fmt.Errorf("failed to delete role from storage: %w", err)
 	}
 
 	return nil, nil

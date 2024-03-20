@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
@@ -76,12 +75,12 @@ func (b *backend) pathConfigUpdate(ctx context.Context, req *logical.Request, d 
 		// Make a new storage entry
 		entry, err := logical.StorageEntryJSON("config", c)
 		if err != nil {
-			return nil, errwrap.Wrapf("failed to generate JSON configuration: {{err}}", err)
+			return nil, fmt.Errorf("failed to generate JSON configuration: %w", err)
 		}
 
 		// And store it
 		if err := req.Storage.Put(ctx, entry); err != nil {
-			return nil, errwrap.Wrapf("Failed to persist configuration: {{err}}", err)
+			return nil, fmt.Errorf("failed to persist configuration: %w", err)
 		}
 
 	}

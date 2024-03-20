@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
@@ -48,7 +47,7 @@ type Role struct {
 func (b *backend) ListRoles(ctx context.Context, s logical.Storage) ([]string, error) {
 	roles, err := s.List(ctx, "roles/")
 	if err != nil {
-		return nil, errwrap.Wrapf("Unable to retrieve list of roles: {{err}}", err)
+		return nil, fmt.Errorf("unable to retrieve list of roles: %w", err)
 	}
 
 	return roles, nil
@@ -59,7 +58,7 @@ func (b *backend) ListRoles(ctx context.Context, s logical.Storage) ([]string, e
 func (b *backend) GetRole(ctx context.Context, s logical.Storage, role string) (*Role, error) {
 	r, err := s.Get(ctx, "roles/"+role)
 	if err != nil {
-		return nil, errwrap.Wrapf(fmt.Sprintf("Unable to retrieve role %q: {{err}}", role), err)
+		return nil, fmt.Errorf("unable to retrieve role %q: %w", role, err)
 	}
 
 	if r == nil {
@@ -68,7 +67,7 @@ func (b *backend) GetRole(ctx context.Context, s logical.Storage, role string) (
 
 	var rv Role
 	if err := r.DecodeJSON(&rv); err != nil {
-		return nil, errwrap.Wrapf(fmt.Sprintf("Unable to decode role %q: {{err}}", role), err)
+		return nil, fmt.Errorf("unable to decode role %q: %w", role, err)
 	}
 
 	return &rv, nil
