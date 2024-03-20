@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
@@ -40,12 +39,12 @@ func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, d *fram
 
 	role, err := b.GetRole(ctx, req.Storage, roleName)
 	if err != nil {
-		return nil, errwrap.Wrapf("error fetching role: {{err}}", err)
+		return nil, fmt.Errorf("error fetching role: %w", err)
 	}
 
 	config, err := b.GetConfig(ctx, req.Storage)
 	if err != nil {
-		return nil, errwrap.Wrapf("Error fetching config: {{err}}", err)
+		return nil, fmt.Errorf("error fetching config: %w", err)
 	}
 
 	newKeyName := fmt.Sprintf("%s%s", role.KeyNamePrefix, req.ID)

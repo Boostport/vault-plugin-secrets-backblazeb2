@@ -2,9 +2,9 @@ package b2
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
@@ -86,7 +86,7 @@ func (b *backend) GetConfig(ctx context.Context, s logical.Storage) (*Config, er
 
 	entry, err := s.Get(ctx, "config")
 	if err != nil {
-		return nil, errwrap.Wrapf("failed to get configuration from backend: {{err}}", err)
+		return nil, fmt.Errorf("failed to get configuration from backend: %w", err)
 	}
 
 	if entry == nil || len(entry.Value) == 0 {
@@ -94,7 +94,7 @@ func (b *backend) GetConfig(ctx context.Context, s logical.Storage) (*Config, er
 	}
 
 	if err := entry.DecodeJSON(&c); err != nil {
-		return nil, errwrap.Wrapf("failed to decode configuration: {{err}}", err)
+		return nil, fmt.Errorf("failed to decode configuration: %w", err)
 	}
 
 	return c, nil

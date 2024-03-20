@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	b2client "github.com/Backblaze/blazer/b2"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
@@ -93,12 +92,12 @@ func (b *backend) pathRotateKey(ctx context.Context, req *logical.Request, d *fr
 		// Make a new storage entry
 		entry, err := logical.StorageEntryJSON("config", c)
 		if err != nil {
-			return nil, errwrap.Wrapf("failed to generate JSON configuration: {{err}}", err)
+			return nil, fmt.Errorf("failed to generate JSON configuration: %w", err)
 		}
 
 		// And store it
 		if err := req.Storage.Put(ctx, entry); err != nil {
-			return nil, errwrap.Wrapf("Failed to persist configuration: {{err}}", err)
+			return nil, fmt.Errorf("failed to persist configuration: %w", err)
 		}
 
 	}
@@ -107,7 +106,7 @@ func (b *backend) pathRotateKey(ctx context.Context, req *logical.Request, d *fr
 
 	client, err = b.getB2Client(ctx, req.Storage)
 	if err != nil {
-		return nil, errwrap.Wrapf("Failed to create new b2client: {{err}}", err)
+		return nil, fmt.Errorf("failed to create new b2client: %w", err)
 	}
 	b.client = client
 
@@ -120,7 +119,7 @@ func (b *backend) pathRotateKey(ctx context.Context, req *logical.Request, d *fr
 	oldKeys, _, err := b.client.ListKeys(ctx, 1, oldKeyId)
 	if err != nil {
 		b.Logger().Error("Error looking up previous key", "error", err)
-		return nil, errwrap.Wrapf("Failed to look up previous key: {{err}}", err)
+		return nil, fmt.Errorf("failed to look up previous key: %w", err)
 	}
 
 	// We *should* only get one, and *should* only get the
@@ -130,7 +129,7 @@ func (b *backend) pathRotateKey(ctx context.Context, req *logical.Request, d *fr
 		if key.ID() == oldKeyId {
 			if err = key.Delete(ctx); err != nil {
 				b.Logger().Error("Error deleting old key", "error", err)
-				return nil, errwrap.Wrapf("Error deleting old key: {{err}}", err)
+				return nil, fmt.Errorf("error deleting old key: %w", err)
 			}
 		}
 	}
