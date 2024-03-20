@@ -17,8 +17,10 @@ func (b *backend) pathRoles() *framework.Path {
 		Pattern:      fmt.Sprintf("roles/?"),
 		HelpSynopsis: "List configured roles.",
 
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.ListOperation: b.pathRolesList,
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.ListOperation: &framework.PathOperation{
+				Callback: b.pathRolesList,
+			},
 		},
 	}
 }
@@ -74,11 +76,19 @@ func (b *backend) pathRolesCRUD() *framework.Path {
 
 		ExistenceCheck: b.pathRoleExistsCheck,
 
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.CreateOperation: b.pathRoleWrite,
-			logical.ReadOperation:   b.pathRoleRead,
-			logical.UpdateOperation: b.pathRoleWrite,
-			logical.DeleteOperation: b.pathRoleDelete,
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.CreateOperation: &framework.PathOperation{
+				Callback: b.pathRoleWrite,
+			},
+			logical.ReadOperation: &framework.PathOperation{
+				Callback: b.pathRoleRead,
+			},
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: b.pathRoleWrite,
+			},
+			logical.DeleteOperation: &framework.PathOperation{
+				Callback: b.pathRoleDelete,
+			},
 		},
 	}
 }

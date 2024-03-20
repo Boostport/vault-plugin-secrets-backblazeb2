@@ -24,8 +24,10 @@ func (b *backend) pathConfigRotate() *framework.Path {
 			},
 		},
 
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.UpdateOperation: b.pathRotateKey,
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: b.pathRotateKey,
+			},
 		},
 	}
 }
