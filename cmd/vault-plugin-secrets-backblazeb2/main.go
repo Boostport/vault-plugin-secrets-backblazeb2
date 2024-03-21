@@ -3,34 +3,29 @@ package main
 import (
 	"os"
 
-	b2 "github.com/Boostport/vault-plugin-secrets-backblazeb2"
+	vault_plugin_secrets_backblazeb2 "github.com/Boostport/vault-plugin-secrets-backblazeb2"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/sdk/plugin"
 )
 
+var version = ""
+
 func main() {
-	logger := hclog.New(&hclog.LoggerOptions{})
-
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("panic in the plugin", "error", r)
-			os.Exit(1)
-		}
-	}()
-
-	meta := &api.PluginAPIClientMeta{}
-
-	flags := meta.FlagSet()
+	apiClientMeta := &api.PluginAPIClientMeta{}
+	flags := apiClientMeta.FlagSet()
 	flags.Parse(os.Args[1:])
 
-	tlsConfig := meta.GetTLSConfig()
+	tlsConfig := apiClientMeta.GetTLSConfig()
 	tlsProviderFunc := api.VaultPluginTLSProvider(tlsConfig)
 
-	if err := plugin.Serve(&plugin.ServeOpts{
-		BackendFactoryFunc: b2.Factory,
+	err := plugin.Serve(&plugin.ServeOpts{
+		BackendFactoryFunc: vault_plugin_secrets_backblazeb2.Factory(version),
 		TLSProviderFunc:    tlsProviderFunc,
-	}); err != nil {
+	})
+	if err != nil {
+		logger := hclog.New(&hclog.LoggerOptions{})
+
 		logger.Error("plugin shutting down", "error", err)
 		os.Exit(1)
 	}

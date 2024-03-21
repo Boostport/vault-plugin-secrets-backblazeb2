@@ -12,7 +12,7 @@ import (
 )
 
 // List the defined roles
-func (b *backend) pathRoles() *framework.Path {
+func (b *backblazeB2Backend) pathRoles() *framework.Path {
 	return &framework.Path{
 		Pattern:      fmt.Sprintf("roles/?"),
 		HelpSynopsis: "List configured roles.",
@@ -26,7 +26,7 @@ func (b *backend) pathRoles() *framework.Path {
 }
 
 // pathRolesList lists the currently defined roles
-func (b *backend) pathRolesList(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) pathRolesList(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
 	roles, err := b.ListRoles(ctx, req.Storage)
 
 	if err != nil {
@@ -37,7 +37,7 @@ func (b *backend) pathRolesList(ctx context.Context, req *logical.Request, _ *fr
 }
 
 // Define the CRUD functions for the roles path
-func (b *backend) pathRolesCRUD() *framework.Path {
+func (b *backblazeB2Backend) pathRolesCRUD() *framework.Path {
 	return &framework.Path{
 		Pattern:         fmt.Sprintf("roles/" + framework.GenericNameRegex("role")),
 		HelpSynopsis:    "Configure a Backblaze B2 role.",
@@ -94,7 +94,7 @@ func (b *backend) pathRolesCRUD() *framework.Path {
 }
 
 // pathRoleExistsCheck checks to see if a role exists
-func (b *backend) pathRoleExistsCheck(ctx context.Context, req *logical.Request, d *framework.FieldData) (bool, error) {
+func (b *backblazeB2Backend) pathRoleExistsCheck(ctx context.Context, req *logical.Request, d *framework.FieldData) (bool, error) {
 	role := d.Get("role").(string)
 	if r, err := b.GetRole(ctx, req.Storage, role); err != nil || r == nil {
 		return false, nil
@@ -104,7 +104,7 @@ func (b *backend) pathRoleExistsCheck(ctx context.Context, req *logical.Request,
 }
 
 // pathRoleRead reads information on a current role
-func (b *backend) pathRoleRead(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) pathRoleRead(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	role := d.Get("role").(string)
 
 	r, err := b.GetRole(ctx, req.Storage, role)
@@ -131,7 +131,7 @@ func (b *backend) pathRoleRead(ctx context.Context, req *logical.Request, d *fra
 }
 
 // pathRoleWrite creates/updates a role entry
-func (b *backend) pathRoleWrite(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) pathRoleWrite(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	role := d.Get("role").(string)
 
 	var r Role
@@ -188,7 +188,7 @@ func (b *backend) pathRoleWrite(ctx context.Context, req *logical.Request, d *fr
 }
 
 // pathRoleDelete deletes a role
-func (b *backend) pathRoleDelete(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) pathRoleDelete(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	role := d.Get("role").(string)
 
 	_, err := b.GetRole(ctx, req.Storage, role)

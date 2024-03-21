@@ -8,7 +8,7 @@ import (
 )
 
 // Call this to set a new b2client in the backend.
-func (b *backend) newB2Client(ctx context.Context, id string, key string) error {
+func (b *backblazeB2Backend) newB2Client(ctx context.Context, id string, key string) error {
 
 	b.Logger().Debug("newB2Client", "id", id)
 
@@ -29,7 +29,7 @@ func (b *backend) newB2Client(ctx context.Context, id string, key string) error 
 }
 
 // Convenience function to get the b2client
-func (b *backend) getB2Client(ctx context.Context, s logical.Storage) (*b2client.Client, error) {
+func (b *backblazeB2Backend) getB2Client(ctx context.Context, s logical.Storage) (*b2client.Client, error) {
 	b.Logger().Debug("getB2Client, getting clientMutex.RLock")
 	b.clientMutex.RLock()
 	if b.client != nil {
