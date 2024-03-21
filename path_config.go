@@ -9,7 +9,7 @@ import (
 )
 
 // Define the CRU functions for the config path
-func (b *backend) pathConfigCRUD() *framework.Path {
+func (b *backblazeB2Backend) pathConfigCRUD() *framework.Path {
 	return &framework.Path{
 		Pattern:         fmt.Sprintf("config/?$"),
 		HelpSynopsis:    "Configure the Backblaze B2 connection.",
@@ -46,7 +46,7 @@ func (b *backend) pathConfigCRUD() *framework.Path {
 }
 
 // Read the current configuration
-func (b *backend) pathConfigRead(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) pathConfigRead(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
 	c, err := b.GetConfig(ctx, req.Storage)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (b *backend) pathConfigRead(ctx context.Context, req *logical.Request, _ *f
 }
 
 // Update the configuration
-func (b *backend) pathConfigUpdate(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) pathConfigUpdate(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	c, err := b.GetConfig(ctx, req.Storage)
 	if err != nil {
 		return nil, err

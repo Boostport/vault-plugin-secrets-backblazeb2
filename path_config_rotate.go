@@ -11,7 +11,7 @@ import (
 )
 
 // Define the rotate path
-func (b *backend) pathConfigRotate() *framework.Path {
+func (b *backblazeB2Backend) pathConfigRotate() *framework.Path {
 	return &framework.Path{
 		Pattern:         fmt.Sprintf("config/rotate/?$"),
 		HelpSynopsis:    "Use the existing key to generate a set a new key",
@@ -33,7 +33,7 @@ func (b *backend) pathConfigRotate() *framework.Path {
 }
 
 // Rotate the key
-func (b *backend) pathRotateKey(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) pathRotateKey(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 
 	// Get the current b.client before we blow it away
 	client, err := b.getB2Client(ctx, req.Storage)

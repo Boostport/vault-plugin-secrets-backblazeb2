@@ -12,7 +12,7 @@ import (
 
 const b2KeyType = "b2_application_key"
 
-func (b *backend) b2ApplicationsKeys() *framework.Secret {
+func (b *backblazeB2Backend) b2ApplicationsKeys() *framework.Secret {
 	return &framework.Secret{
 		Type: b2KeyType,
 		Fields: map[string]*framework.FieldSchema{
@@ -48,7 +48,7 @@ func (b *backend) b2ApplicationsKeys() *framework.Secret {
 	}
 }
 
-func (b *backend) b2ApplicationKeyCreate(ctx context.Context, s logical.Storage,
+func (b *backblazeB2Backend) b2ApplicationKeyCreate(ctx context.Context, s logical.Storage,
 	keyName, accountId string, capabilities []string,
 	bucketName, namePrefix string,
 	lifetime time.Duration) (*b2client.Key, error) {
@@ -98,7 +98,7 @@ func (b *backend) b2ApplicationKeyCreate(ctx context.Context, s logical.Storage,
 
 }
 
-func (b *backend) b2ApplicationKeyRevoke(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) b2ApplicationKeyRevoke(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 
 	client, err := b.getB2Client(ctx, req.Storage)
 	if err != nil {

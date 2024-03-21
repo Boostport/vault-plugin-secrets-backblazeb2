@@ -81,7 +81,7 @@ func (c *Config) Update(d *framework.FieldData) (bool, error) {
 // the plugin has not been configured, a default, empty configuration
 // is returned
 
-func (b *backend) GetConfig(ctx context.Context, s logical.Storage) (*Config, error) {
+func (b *backblazeB2Backend) GetConfig(ctx context.Context, s logical.Storage) (*Config, error) {
 	c := DefaultConfig()
 
 	entry, err := s.Get(ctx, "config")

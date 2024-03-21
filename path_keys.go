@@ -10,7 +10,7 @@ import (
 )
 
 // Define the R functions for the keys path
-func (b *backend) pathKeysRead() *framework.Path {
+func (b *backblazeB2Backend) pathKeysRead() *framework.Path {
 	return &framework.Path{
 		Pattern:      fmt.Sprintf("keys/" + framework.GenericNameRegex("role")),
 		HelpSynopsis: "Provision a key for this role.",
@@ -35,7 +35,7 @@ func (b *backend) pathKeysRead() *framework.Path {
 }
 
 // Read a new key
-func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) pathKeyRead(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 
 	roleName := d.Get("role").(string)
 

@@ -44,7 +44,7 @@ type Role struct {
 
 // List Roles
 
-func (b *backend) ListRoles(ctx context.Context, s logical.Storage) ([]string, error) {
+func (b *backblazeB2Backend) ListRoles(ctx context.Context, s logical.Storage) ([]string, error) {
 	roles, err := s.List(ctx, "roles/")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve list of roles: %w", err)
@@ -55,7 +55,7 @@ func (b *backend) ListRoles(ctx context.Context, s logical.Storage) ([]string, e
 
 // Get Role
 
-func (b *backend) GetRole(ctx context.Context, s logical.Storage, role string) (*Role, error) {
+func (b *backblazeB2Backend) GetRole(ctx context.Context, s logical.Storage, role string) (*Role, error) {
 	r, err := s.Get(ctx, "roles/"+role)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve role %q: %w", role, err)

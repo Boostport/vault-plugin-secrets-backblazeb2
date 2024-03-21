@@ -2,6 +2,7 @@ package vault_plugin_secrets_backblazeb2
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	b2client "github.com/Backblaze/blazer/b2"
@@ -9,7 +10,7 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-type backend struct {
+type backblazeB2Backend struct {
 	*framework.Backend
 
 	client *b2client.Client
@@ -21,19 +22,21 @@ type backend struct {
 }
 
 // Factory returns a configured instance of the B2 backend
-func Factory(ctx context.Context, c *logical.BackendConfig) (logical.Backend, error) {
-	b := Backend()
-	if err := b.Setup(ctx, c); err != nil {
-		return nil, err
-	}
+func Factory(version string) logical.Factory {
+	return func(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, error) {
+		b := backend(version)
+		if err := b.Setup(ctx, conf); err != nil {
+			return nil, err
+		}
 
-	b.Logger().Info("Plugin successfully initialized")
-	return b, nil
+		b.Logger().Info("Plugin successfully initialized")
+		return b, nil
+	}
 }
 
 // Backend returns a configured B2 backend
-func Backend() *backend {
-	var b backend
+func backend(version string) *backblazeB2Backend {
+	var b backblazeB2Backend
 
 	b.Backend = &framework.Backend{
 		BackendType: logical.TypeLogical,
@@ -62,6 +65,10 @@ func Backend() *backend {
 		Secrets: []*framework.Secret{
 			b.b2ApplicationsKeys(),
 		},
+	}
+
+	if version != "" {
+		b.Backend.RunningVersion = fmt.Sprintf("v%s", version)
 	}
 
 	b.client = (*b2client.Client)(nil)
