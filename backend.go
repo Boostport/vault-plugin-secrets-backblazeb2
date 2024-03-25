@@ -18,7 +18,7 @@ type backblazeB2Backend struct {
 	// We're going to have to be able to rotate the client
 	// if the mount configured credentials change, use
 	// this to protect it
-	clientMutex sync.RWMutex
+	lock sync.RWMutex
 }
 
 // Factory returns a configured instance of the B2 backend
@@ -39,16 +39,20 @@ func backend(version string) *backblazeB2Backend {
 	var b backblazeB2Backend
 
 	b.Backend = &framework.Backend{
-		BackendType: logical.TypeLogical,
-		Help:        "The B2 secrets backend provisions API keys for the Backblaze B2 service",
-
+		Help: "The B2 secrets backend provisions API keys for the Backblaze B2 service",
+		PathsSpecial: &logical.Paths{
+			SealWrapStorage: []string{
+				"config",
+				"role/*",
+			},
+		},
 		Paths: []*framework.Path{
 			// path_config.go
 			// ^config
 			b.pathConfigCRUD(),
 
 			// path_config_rotate.go
-			// ^config/rotate
+			// ^config/rotate-root
 			b.pathConfigRotate(),
 
 			// path_roles.go
@@ -57,14 +61,15 @@ func backend(version string) *backblazeB2Backend {
 			// ^roles/<role>
 			b.pathRolesCRUD(),
 
-			// path_keys.go
-			// ^keys/<role>
-			b.pathKeysRead(),
+			// path_credentials.go
+			// ^creds/<role>
+			b.pathCredentials(),
 		},
-
 		Secrets: []*framework.Secret{
-			b.b2ApplicationsKeys(),
+			b.b2ApplicationsKey(),
 		},
+		BackendType: logical.TypeLogical,
+		Invalidate:  b.invalidate,
 	}
 
 	if version != "" {
@@ -74,4 +79,16 @@ func backend(version string) *backblazeB2Backend {
 	b.client = (*b2client.Client)(nil)
 
 	return &b
+}
+
+func (b *backblazeB2Backend) reset() {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+	b.client = nil
+}
+
+func (b *backblazeB2Backend) invalidate(_ context.Context, key string) {
+	if key == "config" {
+		b.reset()
+	}
 }

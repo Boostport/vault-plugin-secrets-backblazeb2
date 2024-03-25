@@ -1,98 +1,58 @@
-# vault-plugin-secrets-backblazeb2
+# Vault Plugin: Backblaze B2 Secrets Backend
+This is a [HashiCorp Vault](https://www.github.com/hashicorp/vault) plugin that generates application keys for [Backblaze
+B2 Cloud Storage](https://www.backblaze.com/cloud-storage).
 
-**NOTE**: This is a very initial release of this code, please test
-in a non-critical environment before you use it.
+## Download
+Binary releases are available at https://github.com/Boostport/vault-plugin-secrets-backblazeb2/releases.
 
-This is a plugin for [HashiCorp Vault][vault] which will provision
-API keys for the [Backblaze B2 Cloud Storage][b2] service. A good
-deal of help was gleaned from the [vault-plugin-secrets-helloworld][helloworld]
-plugin from @daveadams, and the Vault builtin AWS and database secrets
-engines.
+## Verify Binaries
+The checksum for the binaries are signed with cosign. To verify the binaries, download the following files (where
+`${VERSION}` is the version of the release):
+- `vault-plugin-secrets-backblazeb2_${VERSION}_checksums.txt`
+- `vault-plugin-secrets-backblazeb2_${VERSION}_checksums.txt.pem`
+- `vault-plugin-secrets-backblazeb2_${VERSION}_checksums.txt.sig`
+
+Then download the release binaries you need. Here, we just download the linux amd64 binary:
+-  `vault-plugin-secrets-backblazeb2_${VERSION}_linux_amd64`
+
+Then run the following commands to verify the checksums and signature:
+```sh
+# Verify checksum signature
+$ cosign verify-blob --signature vault-plugin-secrets-backblazeb2_${VERSION}_checksums.txt.sig --certificate vault-plugin-secrets-backblazeb2_${VERSION}_checksums.txt.pem vault-plugin-secrets-backblazeb2_${VERSION}_checksums.txt --certificate-identity "https://github.com/Boostport/vault-plugin-secrets-backblazeb2/.github/workflows/release.yml@refs/tags/v${VERSION}" --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+
+# Verify checksum with binaries
+$ sha256sum -c vault-plugin-secrets-backblazeb2_${VERSION}_checksums.txt
+```
 
 ## Usage
-
-Once the plugin is registered with your vault instance, you can enable it
+1. Once the plugin is registered with your vault instance, you can enable it
 on a particular path:
+```shell
+$ vault secrets enable -path=backblazeb2 vault-plugin-secrets-backblazeb2
+```
+2. Configure the backend with your Backblaze B2 application key id and application key:
+```shell
+$ vault write backblazeb2/config application_key_id=<account id> application_key=<key id>
+```
+3. Create a role:
+```shell
+$ vault write backblazeb2/roles/example capabilities=listBuckets,listFiles,readFiles
+```
+4. Issue credentials:
+```shell
+$ vault read backblazeb2/creds/example
+```
 
-    $ vault secrets enable \
-		-path=b2 \
-		-plugin-name=backblazeb2-plugin \
-		-description="Instance of the Backblaze B2 plugin" \
-		plugin
+## Backend Configuration
+| Parameter            | Description                         | Required | Default |
+|----------------------|-------------------------------------|----------|---------|
+| `application_key_id` | The Backblaze B2 application key id | `yes`    | `none`  |
+| `application_key`    | The Backblaze B2 application key    | `yes`    | `none`  |
 
-### Configuration
-
-In order to configure the plugin instance, you must supply it with either your
-Backblaze B2 key id and value. This can be either your account master key, or
-a key with the `writeKeys` capability.
-
-    $ vault write b2/config \
-		account_id=<account id> \
-		key_id=<key id or account id> \
-		key=<key value> \
-
-If `key_id` is not supplied, it's assumed that you are using your account 
-master key, and the `key_id` is the same as your `account_id`.
-
-You can read the current configuration:
-
-    $ vault read b2/config
-
-This returns the `account_id`, `key_id` and `key_name` of the currently
-configured key.
-
-You can also rotate the key stored in the plugin configuration. This will 
-cause the plugin to call the `b2_create_key` call to create a new key
-with the `writeKeys` capability and store it, discarding the previously
-used key. This key cannot be extracted.
-
-    $ vault write b2/config/rotate \
-		key_name=<optional key name>
-
-The `<optional key name>` is B2 key name. If not supplied, it defaults
-to `vault-plugin-secrets-backblazeb2`.
-
-### Roles
-
-Before you can issue keys, you must define a role. A role defines the 
-set of capabilities the key will have, the name prefix for the key,
-and any optional bucket or path restrictions.
-
-    $ vault write b2/roles/example-role \
-		capabilities=<comma separated list of capabilities> \
-		name_prefix=<name prefix> \
-		bucket=<optional bucket restriction> \
-		path=<optional path restriction> \
-
-`<name prefix>` is prefixed to the Vault request id for a key request,
-and defaults to an empty string. Having the Vault request id as the 
-latter part of the name allows you to trace the key issuer via the Vault
-audit log. If you set a prefix, please note the limitations for
-the key name, and that the Vault request id is (currently) 36 characters
-in length.
-
-    $ vault read b2/roles/example-role
-
-Returns the capabilities, name_prefix and optional bucket and path restrictions
-for the role.
-
-    $ vault list b2/roles
-
-Lists all configured roles.
-
-### Provisioning keys
-
-    $ vault read b2/keys/example-role
-
-Returns the keyName, applicationKeyId, applicationKey, capabilities, accountId,
-expirationTimestamp, bucketId and namePrefix of the key as outlined in the
-`b2_create_key` API call.
-
-## Disclaimer
-
-**Full Disclosure**: At this time I am an employee of HashiCorp, but this
-project is entirely personal and is not an official product of HashiCorp, Inc.
-
-[vault]: https://www.vaultproject.io
-[b2]: https://www.backblaze.com/b2/
-[helloworld]: https://github.com/daveadams/vault-plugin-secrets-helloworld
+## Role Configuration
+| Parameter         | Description                                                                                                                                                                           | Required | Default  |
+|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|----------|
+| `capabilities`    | Comma separated list of capabilities. See [Backblaze B2 application key capabilities](https://www.backblaze.com/docs/cloud-storage-application-key-capabilities) for a complete list. | `yes`    | `none`   |
+| `key_name_prefix` | Prefix for key names generated by this role.                                                                                                                                          | `no`     | `vault-` |
+| `bucket_name`     | Optional bucket name on which to restrict this key. **NOTE**: This is the name of the bucket, not the id.                                                                             | `no`     | `none`   |
+| `name_prefix`     | Prefix to further restrict access in a bucket to files whose names start with the prefix. The `bucket_name` parameter must also be set.                                               | `no`     | `none`   |
