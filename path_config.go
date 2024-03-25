@@ -2,35 +2,45 @@ package vault_plugin_secrets_backblazeb2
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
+const configStoragePath = "config"
+
+type backblazeB2Config struct {
+	ApplicationKeyId string `json:"application_key_id"`
+	ApplicationKey   string `json:"application_key"`
+}
+
 // Define the CRU functions for the config path
 func (b *backblazeB2Backend) pathConfigCRUD() *framework.Path {
 	return &framework.Path{
-		Pattern:         fmt.Sprintf("config/?$"),
+		Pattern:         "config",
 		HelpSynopsis:    "Configure the Backblaze B2 connection.",
-		HelpDescription: "Use this endpoint to set the Backblaze B2 account id, key id and key.",
+		HelpDescription: "Use this endpoint to set the Backblaze B2 key id and key.",
 
 		Fields: map[string]*framework.FieldSchema{
-			"account_id": {
+			"application_key_id": {
 				Type:        framework.TypeString,
-				Description: "The Backblaze B2 Account Id.",
+				Description: "The Backblaze B2 application key id",
+				Required:    true,
+				DisplayAttrs: &framework.DisplayAttributes{
+					Name:      "Application Key ID",
+					Sensitive: false,
+				},
 			},
-			"key_id": {
+			"application_key": {
 				Type:        framework.TypeString,
-				Description: "The Backblaze B2 Key Id.",
-			},
-			"key": {
-				Type:        framework.TypeString,
-				Description: "The Backblaze B2 Key.",
-			},
-			"key_name": {
-				Type:        framework.TypeString,
-				Description: "(Optional) Key name.",
+				Description: "The Backblaze B2 application key",
+				Required:    true,
+				DisplayAttrs: &framework.DisplayAttributes{
+					Name:      "Application Key",
+					Sensitive: true,
+				},
 			},
 		},
 
@@ -38,61 +48,113 @@ func (b *backblazeB2Backend) pathConfigCRUD() *framework.Path {
 			logical.ReadOperation: &framework.PathOperation{
 				Callback: b.pathConfigRead,
 			},
+			logical.CreateOperation: &framework.PathOperation{
+				Callback: b.pathConfigWrite,
+			},
 			logical.UpdateOperation: &framework.PathOperation{
-				Callback: b.pathConfigUpdate,
+				Callback: b.pathConfigWrite,
+			},
+			logical.DeleteOperation: &framework.PathOperation{
+				Callback: b.pathConfigDelete,
 			},
 		},
+		ExistenceCheck: b.pathConfigExistenceCheck,
 	}
+}
+func (b *backblazeB2Backend) pathConfigExistenceCheck(ctx context.Context, req *logical.Request, d *framework.FieldData) (bool, error) {
+	out, err := req.Storage.Get(ctx, req.Path)
+	if err != nil {
+		return false, fmt.Errorf("existence check failed: %w", err)
+	}
+
+	return out != nil, nil
 }
 
 // Read the current configuration
 func (b *backblazeB2Backend) pathConfigRead(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
-	c, err := b.GetConfig(ctx, req.Storage)
+	config, err := b.getConfig(ctx, req.Storage)
 	if err != nil {
 		return nil, err
 	}
 
+	if config == nil {
+		return nil, nil
+	}
+
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"account_id": c.AccountId,
-			"key_id":     c.KeyId,
-			"key_name":   c.KeyName,
+			"application_key_id": config.ApplicationKeyId,
 		},
 	}, nil
 }
 
 // Update the configuration
-func (b *backblazeB2Backend) pathConfigUpdate(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	c, err := b.GetConfig(ctx, req.Storage)
+func (b *backblazeB2Backend) pathConfigWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	config, err := b.getConfig(ctx, req.Storage)
 	if err != nil {
 		return nil, err
 	}
 
-	// Update the internal configuration
-	changed, err := c.Update(d)
+	createOperation := req.Operation == logical.CreateOperation
+
+	if config == nil {
+		if !createOperation {
+			return nil, errors.New("config not found during update operation")
+		}
+		config = new(backblazeB2Config)
+	}
+
+	if applicationKeyID, ok := data.GetOk("application_key_id"); ok {
+		config.ApplicationKeyId = applicationKeyID.(string)
+	}
+
+	if applicationKey, ok := data.GetOk("application_key"); ok {
+		config.ApplicationKey = applicationKey.(string)
+	}
+
+	if config.ApplicationKeyId == "" || config.ApplicationKey == "" {
+		return nil, errors.New("both application_key_id and application_key must be set")
+	}
+
+	entry, err := logical.StorageEntryJSON(configStoragePath, config)
 	if err != nil {
-		return nil, logical.CodedError(400, err.Error())
+		return nil, err
 	}
 
-	// If we changed the configuration, store it
-	if changed {
-		// Make a new storage entry
-		entry, err := logical.StorageEntryJSON("config", c)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate JSON configuration: %w", err)
-		}
-
-		// And store it
-		if err := req.Storage.Put(ctx, entry); err != nil {
-			return nil, fmt.Errorf("failed to persist configuration: %w", err)
-		}
-
+	if err := req.Storage.Put(ctx, entry); err != nil {
+		return nil, err
 	}
 
-	// Destroy any old b2client which may exist so we get a new one
-	// with the next request
-
-	b.client = nil
+	// reset the client so the next invocation will pick up the new configuration
+	b.reset()
 
 	return nil, nil
+}
+
+func (b *backblazeB2Backend) pathConfigDelete(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
+	err := req.Storage.Delete(ctx, configStoragePath)
+
+	if err == nil {
+		b.reset()
+	}
+
+	return nil, err
+}
+
+func (b *backblazeB2Backend) getConfig(ctx context.Context, s logical.Storage) (*backblazeB2Config, error) {
+	entry, err := s.Get(ctx, configStoragePath)
+	if err != nil {
+		return nil, fmt.Errorf("error reading mount configuration: %w", err)
+	}
+
+	if entry == nil {
+		return nil, nil
+	}
+
+	config := new(backblazeB2Config)
+	if err := entry.DecodeJSON(&config); err != nil {
+		return nil, fmt.Errorf("error reading root configuration: %w", err)
+	}
+
+	return config, nil
 }

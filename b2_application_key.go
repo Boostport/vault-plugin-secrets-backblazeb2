@@ -2,8 +2,8 @@ package vault_plugin_secrets_backblazeb2
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"time"
 
 	b2client "github.com/Backblaze/blazer/b2"
 	"github.com/hashicorp/vault/sdk/framework"
@@ -12,46 +12,26 @@ import (
 
 const b2KeyType = "b2_application_key"
 
-func (b *backblazeB2Backend) b2ApplicationsKeys() *framework.Secret {
+func (b *backblazeB2Backend) b2ApplicationsKey() *framework.Secret {
 	return &framework.Secret{
 		Type: b2KeyType,
 		Fields: map[string]*framework.FieldSchema{
-			"keyName": {
-				Type:        framework.TypeString,
-				Description: "Application key name",
-			},
-			"applicationKeyId": {
+			"application_key_id": {
 				Type:        framework.TypeString,
 				Description: "Application Key ID",
 			},
-			"capabilities": {
-				Type:        framework.TypeCommaStringSlice,
-				Description: "List of key capabilities",
-			},
-			"accountId": {
+			"application_key": {
 				Type:        framework.TypeString,
-				Description: "Account ID the key is associated with",
+				Description: "Application Key",
 			},
-			"bucketName": {
-				Type:        framework.TypeString,
-				Description: "(Optional) Bucket name to which the key is restricted",
-			},
-			"namePrefix": {
-				Type:        framework.TypeString,
-				Description: "(Optional) Object name prefix to which the key is restricted",
-			},
-			// We skip expirationTimestamp because that will be set to
-			// the Vault TTL for this secret
 		},
-
 		Revoke: b.b2ApplicationKeyRevoke,
+		Renew:  b.b2ApplicationKeyRenew,
 	}
 }
 
 func (b *backblazeB2Backend) b2ApplicationKeyCreate(ctx context.Context, s logical.Storage,
-	keyName, accountId string, capabilities []string,
-	bucketName, namePrefix string,
-	lifetime time.Duration) (*b2client.Key, error) {
+	keyName string, role backblazeB2RoleEntry) (*b2client.Key, error) {
 
 	client, err := b.getB2Client(ctx, s)
 	if err != nil {
@@ -61,25 +41,19 @@ func (b *backblazeB2Backend) b2ApplicationKeyCreate(ctx context.Context, s logic
 	// Set key options
 	var keyOpts []b2client.KeyOption
 
-	// Set TTL, if lifetime is > 0
-	if lifetime > 0 {
-		keyOpts = append(keyOpts, b2client.Lifetime(lifetime))
-	}
-
 	// Set capabilities
-	keyOpts = append(keyOpts, b2client.Capabilities(capabilities...))
+	keyOpts = append(keyOpts, b2client.Capabilities(role.Capabilities...))
 
 	// If bucketName is set, look up the bucket and create that way.
 	// Else, create the key directly. This is how Blazer does it.
-
-	if bucketName != "" {
-		bucket, err := client.Bucket(ctx, bucketName)
+	if role.BucketName != "" {
+		bucket, err := client.Bucket(ctx, role.BucketName)
 		if err != nil {
 			return nil, err
 		}
 		// Set prefix if asked for
-		if namePrefix != "" {
-			keyOpts = append(keyOpts, b2client.Prefix(namePrefix))
+		if role.NamePrefix != "" {
+			keyOpts = append(keyOpts, b2client.Prefix(role.NamePrefix))
 		}
 
 		newKey, err := bucket.CreateKey(ctx, keyName, keyOpts...)
@@ -106,14 +80,15 @@ func (b *backblazeB2Backend) b2ApplicationKeyRevoke(ctx context.Context, req *lo
 	}
 
 	// Get applicationKeyId from secret internal data
-	applicationKeyIdRaw, ok := req.Secret.InternalData["applicationKeyId"]
+	applicationKeyIdRaw, ok := req.Secret.InternalData["application_key_id"]
+
 	if !ok {
-		return nil, fmt.Errorf("secret is missing internal applicationKeyId")
+		return nil, fmt.Errorf("secret is missing internal application_key_id")
 	}
 
 	applicationKeyId, ok := applicationKeyIdRaw.(string)
 	if !ok {
-		return nil, fmt.Errorf("secret is missing internal applicationKeyId")
+		return nil, fmt.Errorf("internal application_key_id is not a string")
 	}
 
 	// Find key
@@ -140,4 +115,33 @@ func (b *backblazeB2Backend) b2ApplicationKeyRevoke(ctx context.Context, req *lo
 	}
 
 	return nil, nil
+}
+
+func (b *backblazeB2Backend) b2ApplicationKeyRenew(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+	roleRaw, ok := req.Secret.InternalData["role"]
+	if !ok {
+		return nil, fmt.Errorf("secret is missing role internal data")
+	}
+
+	// get the role entry
+	role := roleRaw.(string)
+	roleEntry, err := b.getRole(ctx, req.Storage, role)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving role: %w", err)
+	}
+
+	if roleEntry == nil {
+		return nil, errors.New("error retrieving role: role is nil")
+	}
+
+	resp := &logical.Response{Secret: req.Secret}
+
+	if roleEntry.TTL > 0 {
+		resp.Secret.TTL = roleEntry.TTL
+	}
+	if roleEntry.MaxTTL > 0 {
+		resp.Secret.MaxTTL = roleEntry.MaxTTL
+	}
+
+	return resp, nil
 }
