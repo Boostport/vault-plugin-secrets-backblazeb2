@@ -1,0 +1,12 @@
+services:
+  test:
+    image: golang:${GO_VERSION}
+    working_dir: /source
+    command: go test -v ./...
+    environment:
+      - VAULT_ACC=${VAULT_ACC}
+      - TEST_BACKBLAZEB2_APPLICATION_KEY_ID=${TEST_BACKBLAZEB2_APPLICATION_KEY_ID}
+      - TEST_BACKBLAZEB2_APPLICATION_KEY=${TEST_BACKBLAZEB2_APPLICATION_KEY}
+    volumes:
+      - .:/source
+      - $GOPATH/pkg/mod/cache:/go/pkg/mod/cache
