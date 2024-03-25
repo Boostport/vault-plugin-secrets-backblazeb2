@@ -35,9 +35,8 @@ func TestPathConfigRotateRoot(t *testing.T) {
 
 	defer func() {
 		err := key.Delete(context.Background())
-
 		if err != nil {
-			t.Fatalf("Unable to delete test rotation key: %s", err)
+			t.Errorf("Unable to delete test rotation key: %s", err)
 		}
 	}()
 
@@ -87,5 +86,14 @@ func TestPathConfigRotateRoot(t *testing.T) {
 
 	if config.ApplicationKey == key.Secret() {
 		t.Fatal("old and new application keys are equal after rotate-root, it shouldn't be")
+	}
+
+	keys, _, err := client.ListKeys(context.Background(), 1, config.ApplicationKeyId)
+	for _, currentKey := range keys {
+		if currentKey.ID() == config.ApplicationKeyId {
+			if err = currentKey.Delete(context.Background()); err != nil {
+				t.Errorf("Unable to delete rotated key: %s", err)
+			}
+		}
 	}
 }
