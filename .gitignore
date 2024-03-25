@@ -1,3 +1,4 @@
 src/
 _workspace/
-vault-plugin-secrets-backblazeb2
+dist/
+build/
