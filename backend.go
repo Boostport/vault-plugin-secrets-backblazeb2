@@ -88,7 +88,7 @@ func (b *backblazeB2Backend) reset() {
 }
 
 func (b *backblazeB2Backend) invalidate(_ context.Context, key string) {
-	if key == "config" {
+	if key == configStoragePath {
 		b.reset()
 	}
 }
