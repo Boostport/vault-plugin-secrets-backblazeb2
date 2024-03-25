@@ -73,6 +73,8 @@ func (b *backblazeB2Backend) pathConfigRotateRootUpdate(ctx context.Context, req
 		return nil, fmt.Errorf("failed to generate JSON configuration: %w", err)
 	}
 
+	b.reset()
+
 	// And store it
 	if err := req.Storage.Put(ctx, entry); err != nil {
 		return nil, fmt.Errorf("failed to persist configuration: %w", err)
