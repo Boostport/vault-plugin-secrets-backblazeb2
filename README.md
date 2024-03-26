@@ -1,4 +1,6 @@
 # Vault Plugin: Backblaze B2 Secrets Backend
+[![Tests](https://github.com/Boostport/vault-plugin-secrets-backblazeb2/actions/workflows/tests.yml/badge.svg)](https://github.com/Boostport/vault-plugin-secrets-backblazeb2/actions/workflows/tests.yml)
+
 This is a [HashiCorp Vault](https://www.github.com/hashicorp/vault) plugin that generates application keys for [Backblaze
 B2 Cloud Storage](https://www.backblaze.com/cloud-storage).
 
