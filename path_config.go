@@ -61,7 +61,7 @@ func (b *backblazeB2Backend) pathConfigCRUD() *framework.Path {
 		ExistenceCheck: b.pathConfigExistenceCheck,
 	}
 }
-func (b *backblazeB2Backend) pathConfigExistenceCheck(ctx context.Context, req *logical.Request, d *framework.FieldData) (bool, error) {
+func (b *backblazeB2Backend) pathConfigExistenceCheck(ctx context.Context, req *logical.Request, _ *framework.FieldData) (bool, error) {
 	out, err := req.Storage.Get(ctx, req.Path)
 	if err != nil {
 		return false, fmt.Errorf("existence check failed: %w", err)

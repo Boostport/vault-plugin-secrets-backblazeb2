@@ -72,7 +72,7 @@ func (b *backblazeB2Backend) b2ApplicationKeyCreate(ctx context.Context, s logic
 
 }
 
-func (b *backblazeB2Backend) b2ApplicationKeyRevoke(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) b2ApplicationKeyRevoke(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
 
 	client, err := b.getB2Client(ctx, req.Storage)
 	if err != nil {
@@ -117,7 +117,7 @@ func (b *backblazeB2Backend) b2ApplicationKeyRevoke(ctx context.Context, req *lo
 	return nil, nil
 }
 
-func (b *backblazeB2Backend) b2ApplicationKeyRenew(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backblazeB2Backend) b2ApplicationKeyRenew(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
 	roleRaw, ok := req.Secret.InternalData["role"]
 	if !ok {
 		return nil, fmt.Errorf("secret is missing role internal data")
