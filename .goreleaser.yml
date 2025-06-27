@@ -15,7 +15,8 @@ gomod:
   proxy: true
 
 archives:
-  - format: binary
+  - formats:
+    - binary
 
 checksum:
   algorithm: sha256
