@@ -42,7 +42,7 @@ func TestPathConfigRotateRoot(t *testing.T) {
 
 	b, s := getTestBackend(t)
 
-	configData := map[string]interface{}{
+	configData := map[string]any{
 		"application_key_id": key.ID(),
 		"application_key":    key.Secret(),
 	}
@@ -56,7 +56,7 @@ func TestPathConfigRotateRoot(t *testing.T) {
 	resp, err := b.HandleRequest(context.Background(), &logical.Request{
 		Operation: logical.UpdateOperation,
 		Path:      "config/rotate-root",
-		Data:      map[string]interface{}{},
+		Data:      map[string]any{},
 		Storage:   s,
 	})
 	if err != nil {

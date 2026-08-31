@@ -62,7 +62,7 @@ func (e *testCloudEnv) AddConfig(t *testing.T) {
 		Operation: logical.CreateOperation,
 		Path:      "config",
 		Storage:   e.Storage,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"application_key_id": e.ApplicationKeyID,
 			"application_key":    e.ApplicationKey,
 		},
@@ -77,7 +77,7 @@ func (e *testCloudEnv) AddRole(t *testing.T) {
 		Operation: logical.UpdateOperation,
 		Path:      "roles/test-role",
 		Storage:   e.Storage,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"capabilities": []string{"listFiles", "readFiles", "writeFiles"},
 		},
 	}

@@ -62,14 +62,13 @@ func (b *backblazeB2Backend) b2ApplicationKeyCreate(ctx context.Context, s logic
 		}
 		return newKey, nil
 
-	} else {
-		newKey, err := client.CreateKey(ctx, keyName, keyOpts...)
-		if err != nil {
-			return nil, err
-		}
-		return newKey, nil
 	}
 
+	newKey, err := client.CreateKey(ctx, keyName, keyOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return newKey, nil
 }
 
 func (b *backblazeB2Backend) b2ApplicationKeyRevoke(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {

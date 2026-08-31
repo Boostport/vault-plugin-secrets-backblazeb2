@@ -146,7 +146,7 @@ func (b *backblazeB2Backend) pathRoleRead(ctx context.Context, req *logical.Requ
 		return nil, nil
 	}
 
-	roleData := map[string]interface{}{
+	roleData := map[string]any{
 		"key_name_prefix": entry.KeyNamePrefix,
 		"capabilities":    entry.Capabilities,
 		"bucket_name":     entry.BucketName,

@@ -82,7 +82,7 @@ func (b *backblazeB2Backend) pathConfigRead(ctx context.Context, req *logical.Re
 	}
 
 	return &logical.Response{
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"application_key_id": config.ApplicationKeyId,
 		},
 	}, nil
