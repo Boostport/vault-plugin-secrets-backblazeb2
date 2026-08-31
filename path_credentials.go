@@ -53,10 +53,10 @@ func (b *backblazeB2Backend) pathKeyRead(ctx context.Context, req *logical.Reque
 	}
 
 	// Gin up response
-	resp := b.Secret(b2KeyType).Response(map[string]interface{}{
+	resp := b.Secret(b2KeyType).Response(map[string]any{
 		"application_key_id": newKey.ID(),
 		"application_key":    newKey.Secret(),
-	}, map[string]interface{}{
+	}, map[string]any{
 		"application_key_id": newKey.ID(),
 		"role":               roleName,
 	})
