@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
